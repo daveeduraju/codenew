@@ -1,0 +1,48 @@
+name: AKS Kubernetes Deployment
+
+on:
+  workflow_dispatch:  # Trigger manually from GitHub Actions
+    inputs:
+      cluster_name:
+        description: "Name of the AKS Cluster"
+        required: true
+        default: "MyAKSCluster1"
+      resource_group:
+        description: "Resource group of the AKS cluster"
+        required: true
+        default: "AKS_RG2"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Login to Azure
+      run: |
+        az login --service-principal -u ${{ secrets.ARM_CLIENT_ID }} \
+                 -p ${{ secrets.ARM_CLIENT_SECRET }} \
+                 --tenant ${{ secrets.ARM_TENANT_ID }}
+
+    - name: Set AKS Credentials
+      run: |
+        az aks get-credentials --resource-group ${{ github.event.inputs.resource_group }} \
+                               --name ${{ github.event.inputs.cluster_name }} \
+                               --admin
+
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Deploy Kubernetes Manifests
+      run: |
+        kubectl apply -f k8s-manifests/deployment.yaml
+        kubectl apply -f k8s-manifests/service.yaml
+
+    - name: Verify Deployment
+      run: |
+        kubectl get pods
+        kubectl get services
