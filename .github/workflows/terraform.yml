@@ -7,6 +7,10 @@ on:
         description: "Name of the AKS Cluster"
         required: true
         default: "my-cluster"
+      action:         # New input to choose between apply and destroy
+        description: "Action to perform (apply/destroy)"
+        required: true
+        default: "apply"
 
 jobs:
   terraform:
@@ -31,6 +35,11 @@ jobs:
     - name: Terraform Plan
       run: terraform plan
 
+    # Apply or Destroy depending on the input action
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
+      if: inputs.action == 'apply' && github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve
+
+    - name: Terraform Destroy
+      if: inputs.action == 'destroy'
+      run: terraform destroy -auto-approve
