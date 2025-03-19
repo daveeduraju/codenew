@@ -1,0 +1,48 @@
+name: Deploy to AKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: "Name of the AKS Cluster"
+        required: true
+        default: "MyAKSCluster1"
+      resource_group:
+        description: "Resource Group"
+        required: true
+        default: "AKS_RG2"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Azure
+        run: |
+          az login --service-principal -u ${{ secrets.ARM_CLIENT_ID }} \
+                   -p ${{ secrets.ARM_CLIENT_SECRET }} \
+                   --tenant ${{ secrets.ARM_TENANT_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials --resource-group ${{ github.event.inputs.resource_group }} \
+                                  --name ${{ github.event.inputs.cluster_name }} \
+                                  --admin
+
+      - name: Deploy application
+        run: |
+          kubectl apply -f k8s-manifests/deployment.yaml
+          kubectl apply -f k8s-manifests/service.yaml
+
+      - name: Install NGINX Ingress Controller
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+          helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
+
+      - name: Deploy Ingress Resource
+        run: kubectl apply -f k8s-manifests/ingress.yaml
+
