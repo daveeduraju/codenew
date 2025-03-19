@@ -10,7 +10,7 @@ on:
       resource_group:
         description: "Resource Group"
         required: true
-        default: "AKS_RG2"
+        default: "test_app"
 
 jobs:
   deploy:
