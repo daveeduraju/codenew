@@ -6,11 +6,11 @@ on:
       cluster_name:
         description: "Name of the AKS Cluster"
         required: true
-        default: "MyAKSCluster1"
+        default: "MyAKSCluster"
       resource_group:
         description: "Resource Group"
         required: true
-        default: "test_app"
+        default: "AKS_RG"
 
 jobs:
   deploy:
