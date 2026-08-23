@@ -77,3 +77,5 @@ output "aks_cluster_kube_config" {
 output "aks_resource_group" {
   value = azurerm_resource_group.aks_rg.name
 }
+
+new change been included
